@@ -5,7 +5,7 @@ from maze import export
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-with open(./bot_token, 'r') as f:
+with open("./bot_token", 'r') as f:
     token = f.readline().strip()
 
 def separate(input_string):
@@ -24,7 +24,7 @@ async def on_message(message):
             help_message = ("Type -maze <size> to generate a maze of that size.\n"
                             "If no size is provided, a random maze size will be generated.\n"
                             "The maze starts at the red pixel and ends at the black one. Follow the blue path to navigate.\n"
-                            "Example: -maze 41 (Generates a 41x41 maze)")
+                            "Example: -maze 41 generates a 41x41 maze")
             await message.channel.send(help_message)
             return
         if len(parts) > 1 and parts[1].isdigit():
