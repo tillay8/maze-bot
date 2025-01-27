@@ -2,7 +2,6 @@ import random, time
 from PIL import Image
 
 Scale = 10
-#SIDE, START, PATH, END = (0, 228, 48), (255, 0, 0), (0, 121, 241), (0, 0, 0)
 SIDE, START, PATH, END = (0, 0, 0), (255, 0, 0), (255, 255, 255), (0, 0, 255)
 
 def export(num):
@@ -45,7 +44,7 @@ def fill(field, o, n, W):
         field[((n[1] - o[1]) // 2 + o[1]) * W + o[0]] = 1
 
 def createImage(file, field, W, H):
-    img = Image.new("RGB", ((W+2) * Scale, (H+2) * Scale), PATH)
+    img = Image.new("RGB", ((W+2) * Scale, (H+2) * Scale), SIDE)
     pixels = img.load()
     for x in range(W):
         for y in range(H):
@@ -55,11 +54,8 @@ def createImage(file, field, W, H):
                     pixels[(x+1) * Scale + i, (y+1) * Scale + j] = c
     for i in range(Scale):
         for j in range(Scale):
-            pixels[i+1, j+1] = START
+            pixels[i+Scale, j+Scale] = START
     for i in range(Scale):
         for j in range(Scale):
-            pixels[(W - 2) * Scale + i, (H - 2) * Scale + j] = END
-    img.save(file)
+            pixels[(W) * Scale + i, (H) * Scale + j] = END
     return file
-
-export(127)
