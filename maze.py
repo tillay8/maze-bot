@@ -45,20 +45,20 @@ def fill(field, o, n, W):
         field[((n[1] - o[1]) // 2 + o[1]) * W + o[0]] = 1
 
 def createImage(file, field, W, H):
-    img = Image.new("RGB", (W * Scale, H * Scale), PATH)
+    img = Image.new("RGB", ((W+2) * Scale, (H+2) * Scale), PATH)
     pixels = img.load()
     for x in range(W):
         for y in range(H):
             c = SIDE if field[x + y * W] == 0 else PATH
             for i in range(Scale):
                 for j in range(Scale):
-                    pixels[x * Scale + i, y * Scale + j] = c
+                    pixels[(x+1) * Scale + i, (y+1) * Scale + j] = c
     for i in range(Scale):
         for j in range(Scale):
-            pixels[i, j] = START
+            pixels[i+1, j+1] = START
     for i in range(Scale):
         for j in range(Scale):
-            pixels[(W - 1) * Scale + i, (H - 1) * Scale + j] = END
+            pixels[(W - 2) * Scale + i, (H - 2) * Scale + j] = END
     img.save(file)
     return file
 
