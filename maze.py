@@ -2,7 +2,8 @@ import random, time
 from PIL import Image
 
 Scale = 10
-SIDE, START, PATH, END = (0, 228, 48), (255, 0, 0), (0, 121, 241), (0, 0, 0)
+#SIDE, START, PATH, END = (0, 228, 48), (255, 0, 0), (0, 121, 241), (0, 0, 0)
+SIDE, START, PATH, END = (0, 0, 0), (255, 0, 0), (255, 255, 255), (0, 0, 255)
 
 def export(num):
     W, H = num, num
