@@ -1,6 +1,6 @@
 # mazebot
 
-to be merged into novato/management-bot
+to be merged into imalolnoob/management-bot
 
 to run:
 
