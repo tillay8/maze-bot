@@ -13,3 +13,5 @@ python3 mazebot.py starts a discord bot that accepts maze commands
 run from inside directory please so filepaths work
 
 put bot token in maze-bot/bot_token
+
+thanks stigl for original idea and source code (which i converted into python)
