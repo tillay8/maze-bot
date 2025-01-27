@@ -30,9 +30,11 @@ async def on_message(message):
         if len(parts) > 1 and parts[1].isdigit():
             num = int(parts[1])
         elif parts[0] != "":
-            num = random.randint(40, 80)
+            num = random.randint(20, 40) * 2 + 1
+        if num > 1000:
+            num = random.randint(20, 40) * 2 + 1
         if num % 2 == 0:
-            num += random.choice([-1, 1])
+            num += 1
         try:
             await message.channel.send(file=discord.File(export(num)))
         except:
