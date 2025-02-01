@@ -9,7 +9,7 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Read bot token from file
-with open("os.path.expanduser(~/bot_tokens/TilleyHelper_token", 'r') as f:
+with open(os.path.expanduser("~/bot_tokens/TilleyHelper_token"), 'r') as f:
     token = f.readline().strip()
 
 def separate(input_string):
