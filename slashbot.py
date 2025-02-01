@@ -1,36 +1,37 @@
-import discord, random, os
+import discord, random, subprocess, os
 from discord.ext import commands
-from discord import app_commands
-from maze import export
 
-with open("./mazebot_token", 'r') as f:
+# Read bot token from file
+with open(os.path.expanduser("~/bot_tokens/MazeSlash_token"), 'r') as f:
     token = f.readline().strip()
 
+# Bot setup
 bot = commands.Bot("prefix", intents=discord.Intents.none())
-
-def separate(input_string):
-    return [word.strip() for word in input_string.split(' ')]
 
 @bot.tree.command(
     name="maze",
     description="Generate a maze"
 )
 async def command(interaction: discord.Interaction, size: str = None):
-    parts = separate(size if size else "")
-    if len(parts) > 0 and parts[0].isdigit() and int(parts[0]) <= 256:
-        num = int(parts[0])
-    else:
-        num = random.randint(40, 80)
-    if num % 2 == 0:
-        num += 1
+    # Determine maze size
+    parts = size.split() if size else []
+    num = int(parts[0]) if parts and parts[0].isdigit() else random.randint(20, 40) * 2 + 1
+    num = num if num % 2 != 0 else num + 1  # Ensure odd size
+
+    output_file = "maze.png"
     try:
-        await interaction.response.send_message(file=discord.File(export(num)))
+        # Generate the maze 
+        subprocess.run(["./maze", str(num), output_file], check=True)
+
+        # Send the maze image
+        await interaction.response.send_message(file=discord.File(output_file))
     except:
-        await interaction.response.send_message("something really dumb just happenned")
+        print("image size was probably too big")
 
 @bot.event
 async def on_ready():
     await bot.tree.sync()
     print(f"Logged in as {bot.user}")
 
+# Run the bot
 bot.run(token)
