@@ -21,7 +21,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if "-mase" in message.content.lower():
+    if "-maze" in message.content.lower():
         parts = separate(message.content.lower())
         if "help" in parts:
             help_message = (
@@ -45,14 +45,13 @@ async def on_message(message):
             # Send the maze image
             await message.channel.send(file=discord.File(output_file))
         except subprocess.CalledProcessError as e:
-            print(f"Error: {e}")
+            print(f"The maze generator had an error: {e}")
             await message.channel.send(f"Error: {e}")
-            if "Large" in str(e):
-                await message.channel.send("This happened because you tried to generate a maze too big to be an image on Discord.")
         except Exception as e:
             print(f"Unexpected error: {e}")
             await message.channel.send(f"Unexpected error: {e}")
-
+            if "Large" in str(e):
+                await message.channel.send("This happened because you tried to generate a maze too big to be an image on Discord.")
     await bot.process_commands(message)
 
 # Run the bot
