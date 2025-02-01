@@ -1,18 +1,26 @@
-import random, time
+import random
+import time
 from PIL import Image
 
+# Maze colors
 SIDE, START, PATH, END = (0, 0, 0), (255, 0, 0), (255, 255, 255), (0, 0, 255)
 
 def export(num, create):
-    W, H = int(num), int(num)
-    Scale = 10 if W < 100 else 1
-    field = [0] * (W * H)
     start_time = time.time()
+    W, H = int(num), int(num)
+    if W < 100:
+        Scale = 10 
+    elif W < 200:
+        Scale = 5
+    else:
+        Scale = 1
+    field = [0] * (W * H)
     createMaze(field, W, H)
-    image = createImage("maze.png", field, W, H, create, Scale)
     end_time = time.time()
     print(f"Time to generate and path maze: {end_time - start_time:.2f} seconds")
-    return image
+
+    return createImage("maze.png", field, W, H, create, Scale)
+
 def isPossible(field, p, val, W, H):
     if p[0] < 0 or p[1] < 0 or p[0] >= W or p[1] >= H:
         return False
@@ -70,11 +78,6 @@ def createImage(file, field, W, H, create, Scale):
         for j in range(Scale):
             pixels[(W) * Scale + i, (H) * Scale + j] = END
     print("\nexporting image...")
-    if create:
-        img.save(file)
-        print(f"saved image to working directory")
-    else:
-        print("returned image from function")
-        return file
-
-#export(input("width: "), True)
+    img.save(file)
+    print(f"saved image to working directory")
+    return file
