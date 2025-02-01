@@ -1,14 +1,27 @@
 # mazebot
 
-to run:
+### to compile:
 
 install libpng package
+```
+sudo pacman -S libpng
 
-to compile:
+sudo apt install libpng-dev
+```
+then compile it:
 ```
 gcc -o maze maze.c -lpng
 ```
-python3 mazebot.py starts a discord bot that accepts dash commands
+### to run:
+```
+python3 mazebot.py 
+```
+or
+```
+python3 slashbot.py
+```
+
+mazebot is a server discord bot that accepts dash commands
 
 slashbot accepts slash commands (is a user application)
 
