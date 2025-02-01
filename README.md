@@ -2,17 +2,17 @@
 
 to run:
 
-install pillow with pip or package manager or smth
+install libpng package
 
-python3 maze.py generates maze.png in current directory or smth
-
+to compile:
+```
+gcc -o maze maze.c -lpng
+```
 python3 mazebot.py starts a discord bot that accepts dash commands
 
-slashbot accepts slash commands (is a user bot)
+slashbot accepts slash commands (is a user application)
 
-run from inside directory please so filepaths work
-
-put bot token in maze-bot/bot_token
+keep tokens in ~/bot_tokens
 
 thanks stigl for original idea and source code (which i converted into python)
 
