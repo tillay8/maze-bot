@@ -10,58 +10,41 @@
 #define PATH 2
 #define END 3
 
-// Function declerations
+// Function declarations
 int isPossible(int *field, int x, int y, int val, int W, int H);
-void createMaze(int *field, int W, int H, int verbose);
+void createMaze(int *field, int W, int H);
 void fill(int *field, int ox, int oy, int nx, int ny, int W);
-void createImage(const char *file, int *field, int W, int H, int Scale, int verbose);
+void createImage(const char *file, int *field, int W, int H, int Scale);
 
 int main(int argc, char *argv[]) {
     if (argc < 3 || argc > 4) {
-        printf("Usage: %s <size> <output_file> \n", argv[0]);
+        fprintf(stderr, "Usage: %s <size> <output_file>\n", argv[0]);
         return 1;
     }
-
-    int verbose = (argc == 4 && strcmp(argv[3], "-v") == 0);
-
-    if (verbose) {
-        printf("Maze request received\n");
-        fflush(stdout);
-    }
+    printf("Maze request received\n");
 
     int W = atoi(argv[1]);
     int H = W;
     int Scale = (W < 100) ? 10 : (W < 200) ? 5 : 1;
 
-    if (verbose) {
-        printf("Scale: %d Size: %d\n", Scale, W);
-        fflush(stdout);
-    }
+    printf("Scale: %d Size: %d\n", Scale, W - 1);
 
     int *field = (int *)malloc(W * H * sizeof(int));
     if (!field) {
-        printf("Not enough memory: what crap PC are you on??\n");
-        fflush(stdout);
+        fprintf(stderr, "Memory allocation failed\n");
         return 1;
     }
 
     clock_t start = clock();
-    createMaze(field, W, H, verbose);
+    createMaze(field, W, H);
     clock_t end = clock();
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("Pathing maze complete\n");
 
-    if (verbose) {
-        printf("Pathing maze complete\n");
-        fflush(stdout);
-    }
+    createImage(argv[2], field, W, H, Scale);
 
-    createImage(argv[2], field, W, H, Scale, verbose);
-
-    if (verbose) {
-        printf("Saved image to %s\n", argv[2]);
-        printf("Time to generate and path maze: %.2f seconds\n", time_spent);
-        fflush(stdout);
-    }
+    printf("Saved image to %s\n", argv[2]);
+    printf("Time to generate and path maze: %.2f seconds\n", time_spent);
 
     free(field);
     return 0;
@@ -74,13 +57,12 @@ int isPossible(int *field, int x, int y, int val, int W, int H) {
     return (val == 1) ? (field[y * W + x] != 1) : (field[y * W + x] == 1);
 }
 
-void createMaze(int *field, int W, int H, int verbose) {
+void createMaze(int *field, int W, int H) {
     srand(time(NULL));
 
     int (*history)[2] = malloc(W * H * sizeof(int[2]));
     if (!history) {
-        printf("Failed to allocate memory for history\n");
-        fflush(stdout);
+        fprintf(stderr, "Failed to allocate memory for history\n");
         return;
     }
 
@@ -91,38 +73,20 @@ void createMaze(int *field, int W, int H, int verbose) {
         int possible[4][2];
         int possibleCount = 0;
 
-        int up[2] = {pos[0], pos[1] - 2};
-        int down[2] = {pos[0], pos[1] + 2};
-        int left[2] = {pos[0] - 2, pos[1]};
-        int right[2] = {pos[0] + 2, pos[1]};
-
-        if (isPossible(field, up[0], up[1], 1, W, H)) {
-            possible[possibleCount][0] = up[0];
-            possible[possibleCount][1] = up[1];
-            possibleCount++;
-        }
-        if (isPossible(field, down[0], down[1], 1, W, H)) {
-            possible[possibleCount][0] = down[0];
-            possible[possibleCount][1] = down[1];
-            possibleCount++;
-        }
-        if (isPossible(field, left[0], left[1], 1, W, H)) {
-            possible[possibleCount][0] = left[0];
-            possible[possibleCount][1] = left[1];
-            possibleCount++;
-        }
-        if (isPossible(field, right[0], right[1], 1, W, H)) {
-            possible[possibleCount][0] = right[0];
-            possible[possibleCount][1] = right[1];
-            possibleCount++;
+        int directions[4][2] = {{0, -2}, {0, 2}, {-2, 0}, {2, 0}};
+        for (int i = 0; i < 4; i++) {
+            int nx = pos[0] + directions[i][0];
+            int ny = pos[1] + directions[i][1];
+            if (isPossible(field, nx, ny, 1, W, H)) {
+                possible[possibleCount][0] = nx;
+                possible[possibleCount][1] = ny;
+                possibleCount++;
+            }
         }
 
         if (possibleCount == 0) {
             if (historySize == 0) {
-                if (verbose) {
-                    printf("Finished generating maze\n");
-                    fflush(stdout);
-                }
+                printf("Finished generating maze\n");
                 free(history);
                 return;
             }
@@ -154,39 +118,30 @@ void fill(int *field, int ox, int oy, int nx, int ny, int W) {
     }
 }
 
-void createImage(const char *file, int *field, int W, int H, int Scale, int verbose) {
-    if (verbose) {
-        printf("Generating image...\n");
-        fflush(stdout);
-    }
-
+void createImage(const char *file, int *field, int W, int H, int Scale) {
     FILE *fp = fopen(file, "wb");
     if (!fp) {
-        printf("Unable to open file (server side error)\n");
-        fflush(stdout);
+        fprintf(stderr, "Unable to open file (server side error)\n");
         return;
     }
 
     png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png) {
-        printf("Unable to make png (unknown reason)\n");
-        fflush(stdout);
+        fprintf(stderr, "Unable to make png (unknown reason)\n");
         fclose(fp);
         return;
     }
 
     png_infop info = png_create_info_struct(png);
     if (!info) {
-        printf("Unable to make png (unknown reason)\n");
-        fflush(stdout);
+        fprintf(stderr, "Unable to make png (unknown reason)\n");
         png_destroy_write_struct(&png, NULL);
         fclose(fp);
         return;
     }
 
     if (setjmp(png_jmpbuf(png))) {
-        printf("Error during PNG creation\n");
-        fflush(stdout);
+        fprintf(stderr, "Error during PNG creation\n");
         png_destroy_write_struct(&png, &info);
         fclose(fp);
         return;
@@ -214,8 +169,7 @@ void createImage(const char *file, int *field, int W, int H, int Scale, int verb
 
     png_bytep row = (png_bytep)malloc(3 * scaledWidth * sizeof(png_byte));
     if (!row) {
-        printf("Failed to allocate memory for PNG\n");
-        fflush(stdout);
+        fprintf(stderr, "Failed to allocate memory for PNG\n");
         png_destroy_write_struct(&png, &info);
         fclose(fp);
         return;
@@ -254,9 +208,5 @@ void createImage(const char *file, int *field, int W, int H, int Scale, int verb
     free(row);
     png_destroy_write_struct(&png, &info);
     fclose(fp);
-
-    if (verbose) {
-        printf("Exporting image...\n");
-        fflush(stdout);
-    }
+    printf("Exporting image...\n");
 }
