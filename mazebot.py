@@ -23,7 +23,7 @@ async def on_message(message):
         if "help" in parts[1]:
             help_message = ("Type -maze <size> to generate a maze of that size.\n"
                             "If no size is provided, a random maze size will be generated.\n"
-                            "The maze starts at the red pixel and ends at the black one. Follow the blue path to navigate.\n"
+                            "The maze starts at the red pixel and ends at the black one.\n"
                             "Example: -maze 41 generates a 41x41 maze")
             await message.channel.send(help_message)
             return
@@ -36,10 +36,10 @@ async def on_message(message):
         if num % 2 == 0:
             num += 1
         try:
-            await message.channel.send(file=discord.File(export(num)))
+            await message.channel.send(file=discord.File(export(num, False)))
         except:
             num = random.randint(20, 40)
-            await message.channel.send(file=discord.File(export(num * 2 + 1)))
+            await message.channel.send(file=discord.File(export(num * 2 + 1, False)))
     await bot.process_commands(message)
 
 bot.run(token)

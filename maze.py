@@ -1,15 +1,18 @@
 import random, time
 from PIL import Image
 
-Scale = 10
 SIDE, START, PATH, END = (0, 0, 0), (255, 0, 0), (255, 255, 255), (0, 0, 255)
 
-def export(num):
-    W, H = num, num
+def export(num, create):
+    W, H = int(num), int(num)
+    Scale = 10 if W < 100 else 1
     field = [0] * (W * H)
+    start_time = time.time()
     createMaze(field, W, H)
-    return createImage("maze.png", field, W, H)
-
+    image = createImage("maze.png", field, W, H, create, Scale)
+    end_time = time.time()
+    print(f"Time to generate and path maze: {end_time - start_time:.2f} seconds")
+    return image
 def isPossible(field, p, val, W, H):
     if p[0] < 0 or p[1] < 0 or p[0] >= W or p[1] >= H:
         return False
@@ -24,10 +27,14 @@ def createMaze(field, W, H):
     while True:
         possible = []
         up, down, left, right = createDirections(pos, 2)
-        if isPossible(field, up, 1, W, H): possible.append(up)
-        if isPossible(field, down, 1, W, H): possible.append(down)
-        if isPossible(field, left, 1, W, H): possible.append(left)
-        if isPossible(field, right, 1, W, H): possible.append(right)
+        if isPossible(field, up, 1, W, H): 
+            possible.append(up)
+        if isPossible(field, down, 1, W, H): 
+            possible.append(down)
+        if isPossible(field, left, 1, W, H): 
+            possible.append(left)
+        if isPossible(field, right, 1, W, H): 
+            possible.append(right)
         if not possible:
             if not history: return
             pos = history.pop()
@@ -36,6 +43,7 @@ def createMaze(field, W, H):
         pos = random.choice(possible)
         field[pos[1] * W + pos[0]] = 1
         fill(field, history[-1], pos, W)
+    print("finished pathing maze")
 
 def fill(field, o, n, W):
     if o[0] != n[0]:
@@ -43,20 +51,30 @@ def fill(field, o, n, W):
     else:
         field[((n[1] - o[1]) // 2 + o[1]) * W + o[0]] = 1
 
-def createImage(file, field, W, H):
+def createImage(file, field, W, H, create, Scale):
     img = Image.new("RGB", ((W + 2) * Scale, (H + 2) * Scale), SIDE)
     pixels = img.load()
+    print(f"scale: {Scale} size: {W}")
     for x in range(W):
         for y in range(H):
             c = SIDE if field[x + y * W] == 0 else PATH
             for i in range(Scale):
                 for j in range(Scale):
                     pixels[(x + 1) * Scale + i, (y + 1) * Scale + j] = c
+                    progress = ((x * H + y) * Scale * Scale + i * Scale + j) / (W * H * Scale * Scale) * 100
+                    print(f"\rgenerating image: {progress:.2f}%", end="")
     for i in range(Scale):
         for j in range(Scale):
             pixels[i+Scale, j+Scale] = START
     for i in range(Scale):
         for j in range(Scale):
             pixels[(W) * Scale + i, (H) * Scale + j] = END
-    img.save(file)
-    return file
+    print("\nexporting image...")
+    if create:
+        img.save(file)
+        print(f"saved image to working directory")
+    else:
+        print("returned image from function")
+        return file
+
+#export(input("width: "), True)
