@@ -38,3 +38,5 @@ https://github.com/stiglcz/maze-png
 thanks semblanceofsense for solver code
 
 https://github.com/SemblanceOfSense/mazesolver
+
+originally meant for the salc1 discord but works by itself now
