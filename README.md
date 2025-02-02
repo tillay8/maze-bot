@@ -8,9 +8,15 @@ sudo pacman -S libpng
 
 sudo apt install libpng-dev
 ```
-then compile it:
+then compile the C code:
 ```
 gcc -o maze maze.c -lpng
+```
+make to sure to install discord.py with
+```
+yay -S python-discord
+
+sudo apt install python3-discord
 ```
 ### to run:
 ```
@@ -18,16 +24,14 @@ python3 mazebot.py
 ```
 or
 ```
-python3 slashbot.py
+./run.sh [-n]
 ```
 
-mazebot is a server discord bot that accepts dash commands
-
-slashbot accepts slash commands (is a user application)
+mazebot is a discord bot that accepts dash and slash commands
 
 keep tokens in ~/bot_tokens
 
-thanks stigl for original idea and source code (which i converted into python)
+thanks stigl for original idea and source code (which i converted into python and then into C)
 
 https://github.com/stiglcz/maze-png
 
