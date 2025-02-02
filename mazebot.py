@@ -64,10 +64,10 @@ async def on_message(message):
         parts = separate(message.content.lower())
         if "help" in parts:
             help_message = (
-                "Type `!maze <size>` to generate a maze of that size.\n"
+                "Type `-maze <size>` to generate a maze of that size.\n"
                 "If no size is provided, a random maze size will be generated.\n"
                 "The maze starts at the red pixel and ends at the black one.\n"
-                "Example: `!maze 41` generates a 41x41 maze.\n"
+                "Example: `-maze 41` generates a 41x41 maze.\n"
             )
             await message.channel.send(help_message)
             return
