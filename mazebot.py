@@ -1,9 +1,11 @@
-import discord, random, subprocess, os
+import discord, random, subprocess, os, time
 from discord.ext import commands
 
 # Read bot token from file
 with open(os.path.expanduser("~/bot_tokens/SlashMaze_token"), 'r') as f:
     token = f.readline().strip()
+
+insult_delay = 0.8
 
 # Bot setup
 intents = discord.Intents.all()
@@ -12,10 +14,10 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 def separate(input_string):
     return [word.strip() for word in input_string.split()]
 
-async def generate_maze(interaction_or_message, size_input=None):
+async def generate_maze(ctx, size_input=None):
     # Determine maze size
     parts = separate(size_input) if size_input else []
-    num = int(parts[0]) if parts and parts[0].isdigit() else random.randint(20, 40) * 2 + 1
+    num = int(parts[0])
     num = num if num % 2 != 0 else num + 1  # Ensure odd size
 
     output_file = "maze.png"
@@ -23,30 +25,29 @@ async def generate_maze(interaction_or_message, size_input=None):
         subprocess.run(["./maze", str(num), output_file], check=True)
 
         # Send the maze image
-        if isinstance(interaction_or_message, discord.Interaction):
-            await interaction_or_message.response.send_message(file=discord.File(output_file))
+        file = discord.File(output_file)
+        if isinstance(ctx, discord.Interaction):
+            await ctx.response.send_message(file=file)
         else:
-            await interaction_or_message.channel.send(file=discord.File(output_file))
+            await ctx.channel.send(file=file)
+
     except subprocess.CalledProcessError as e:
         error_msg = f"The maze generator had an error: {e}"
         print(error_msg)
-        if isinstance(interaction_or_message, discord.Interaction):
-            await interaction_or_message.response.send_message(error_msg)
-        else:
-            await interaction_or_message.channel.send(error_msg)
+        await send_response(ctx, error_msg)
     except Exception as e:
         error_msg = f"Unexpected error: {e}"
         print(error_msg)
-        if isinstance(interaction_or_message, discord.Interaction):
-            await interaction_or_message.response.send_message(error_msg)
-        else:
-            await interaction_or_message.channel.send(error_msg)
-        if "Large" in str(e):
-            size_error_msg = "This happened because you tried to generate a maze too big to be an image on Discord."
-            if isinstance(interaction_or_message, discord.Interaction):
-                await interaction_or_message.response.send_message(size_error_msg)
-            else:
-                await interaction_or_message.channel.send(size_error_msg)
+        await send_response(ctx, error_msg)
+    finally:
+        if os.path.exists(output_file):
+            os.remove(output_file)
+
+async def send_response(ctx, message):
+    if isinstance(ctx, discord.Interaction):
+        await ctx.response.send_message(message)
+    else:
+        await ctx.channel.send(message)
 
 @bot.tree.command(
     name="maze",
@@ -71,11 +72,30 @@ async def on_message(message):
             )
             await message.channel.send(help_message)
             return
-
         # Extract size input from the message
         size_input = parts[1] if len(parts) > 1 else None
-        await generate_maze(message, size_input)
+        try:
+            await generate_maze(message, size_input)
+        except Exception as e:
+            await message.channel.send(e)
 
+    # Replies to defend Sense's maze solver
+    elif "Solution file" in message.content:
+        time.sleep(insult_delay)
+        await message.channel.send("skill issue <@1335044960898252830>")
+        return
+    elif "with a maze" in message.content:
+        time.sleep(insult_delay)
+        await message.channel.send("yeah, get it right")
+        return
+    elif "valid maze" in message.content:
+        time.sleep(insult_delay)
+        await message.channel.send("that maze is already solved you idiot")
+        return
+    elif "contain a maze" in message.content:
+        time.sleep(insult_delay)
+        await message.channel.send("bruh dont reply to random messages. they aint mazes")
+        return
     await bot.process_commands(message)
 
 @bot.event
