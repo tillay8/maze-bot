@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     createImage(argv[2], field, W, H, Scale);
 
     printf("Saved image to %s\n", argv[2]);
-    printf("Time to generate and path maze: %.2f seconds\n", time_spent);
+    printf("Time to path maze: \033[31m%.2f\033[0m seconds\n", time_spent);
 
     free(field);
     return 0;
