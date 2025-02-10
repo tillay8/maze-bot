@@ -21,8 +21,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s <size> <output_file>\n", argv[0]);
         return 1;
     }
-    printf("\nMaze request received\n");
-
     int W = atoi(argv[1]);
     int H = W;
     int Scale = (W < 100) ? 10 : (W < 200) ? 8 : (W < 300) ? 6 : (W < 400) ? 4 : 1;
@@ -85,7 +83,6 @@ void createMaze(int *field, int W, int H) {
 
         if (possibleCount == 0) {
             if (historySize == 0) {
-                printf("Finished generating maze\n");
                 free(history);
                 return;
             }
@@ -207,5 +204,4 @@ void createImage(const char *file, int *field, int W, int H, int Scale) {
     free(row);
     png_destroy_write_struct(&png, &info);
     fclose(fp);
-    printf("Exporting image...\n");
 }
