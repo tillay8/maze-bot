@@ -4,13 +4,12 @@
 #include <png.h>
 #include <string.h>
 
-// Maze colors
+// colors
 #define SIDE 0
 #define START 1
 #define PATH 2
 #define END 3
 
-// Function declarations
 int isPossible(int *field, int x, int y, int val, int W, int H);
 void createMaze(int *field, int W, int H);
 void fill(int *field, int ox, int oy, int nx, int ny, int W);
@@ -22,13 +21,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     int W = atoi(argv[1]);
+    if (W % 2 == 0) {
+        W++;
+    }
+    
     int H = W;
     int Scale = (W < 100) ? 10 : (W < 200) ? 8 : (W < 300) ? 6 : (W < 400) ? 4 : 1;
     printf("Scale: %d Size: %d\n", Scale, W - 1);
 
     int *field = (int *)malloc(W * H * sizeof(int));
     if (!field) {
-        fprintf(stderr, "Memory allocation failed\n");
+        fprintf(stderr, "Memory allocation failed: 0x1100\n");
         return 1;
     }
 
@@ -36,12 +39,11 @@ int main(int argc, char *argv[]) {
     createMaze(field, W, H);
     clock_t end = clock();
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("Pathing maze complete\n");
+    printf("Time to path maze: \033[31m%.2f\033[0m seconds\n", time_spent);
 
     createImage(argv[2], field, W, H, Scale);
 
     printf("Saved image to %s\n", argv[2]);
-    printf("Time to path maze: \033[31m%.2f\033[0m seconds\n", time_spent);
 
     free(field);
     return 0;
@@ -59,14 +61,24 @@ void createMaze(int *field, int W, int H) {
 
     int (*history)[2] = malloc(W * H * sizeof(int[2]));
     if (!history) {
-        fprintf(stderr, "Failed to allocate memory for history\n");
+        fprintf(stderr, "Failed to allocate memory for history: 0x1200\n");
         return;
     }
 
     int historySize = 0;
     int pos[2] = {0, 0};
 
-    while (1) {
+    for (int i = 0; i < W * H; i++) {
+        field[i] = 0;
+    }
+
+    // Start point
+    field[0] = 1;
+    history[historySize][0] = 0;
+    history[historySize][1] = 0;
+    historySize++;
+
+    while (historySize > 0) {
         int possible[4][2];
         int possibleCount = 0;
 
@@ -82,25 +94,27 @@ void createMaze(int *field, int W, int H) {
         }
 
         if (possibleCount == 0) {
-            if (historySize == 0) {
-                free(history);
-                return;
-            }
-            pos[0] = history[historySize - 1][0];
-            pos[1] = history[historySize - 1][1];
             historySize--;
+            if (historySize > 0) {
+                pos[0] = history[historySize - 1][0];
+                pos[1] = history[historySize - 1][1];
+            }
             continue;
         }
+
+        int choice = rand() % possibleCount;
+        int nx = possible[choice][0];
+        int ny = possible[choice][1];
+
+        field[ny * W + nx] = 1;
+        fill(field, pos[0], pos[1], nx, ny, W);
+
+        pos[0] = nx;
+        pos[1] = ny;
 
         history[historySize][0] = pos[0];
         history[historySize][1] = pos[1];
         historySize++;
-
-        int choice = rand() % possibleCount;
-        pos[0] = possible[choice][0];
-        pos[1] = possible[choice][1];
-        field[pos[1] * W + pos[0]] = 1;
-        fill(field, history[historySize - 1][0], history[historySize - 1][1], pos[0], pos[1], W);
     }
 
     free(history);
@@ -117,27 +131,27 @@ void fill(int *field, int ox, int oy, int nx, int ny, int W) {
 void createImage(const char *file, int *field, int W, int H, int Scale) {
     FILE *fp = fopen(file, "wb");
     if (!fp) {
-        fprintf(stderr, "Unable to open file (server side error)\n");
+        fprintf(stderr, "Unable to open file: 0x1300\n");
         return;
     }
 
     png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png) {
-        fprintf(stderr, "Unable to make png (unknown reason)\n");
+        fprintf(stderr, "Unable to make png: 0x1400\n");
         fclose(fp);
         return;
     }
 
     png_infop info = png_create_info_struct(png);
     if (!info) {
-        fprintf(stderr, "Unable to make png (unknown reason)\n");
+        fprintf(stderr, "Unable to make png metadata: 0x1500\n");
         png_destroy_write_struct(&png, NULL);
         fclose(fp);
         return;
     }
 
     if (setjmp(png_jmpbuf(png))) {
-        fprintf(stderr, "Error during PNG creation\n");
+        fprintf(stderr, "Unknown error during PNG creation: 0x1600\n");
         png_destroy_write_struct(&png, &info);
         fclose(fp);
         return;
@@ -145,7 +159,7 @@ void createImage(const char *file, int *field, int W, int H, int Scale) {
 
     png_init_io(png, fp);
 
-    // Set image dimensions (scaled)
+    // Set image dimensions
     int scaledWidth = (W + 2) * Scale;
     int scaledHeight = (H + 2) * Scale;
 
@@ -165,7 +179,7 @@ void createImage(const char *file, int *field, int W, int H, int Scale) {
 
     png_bytep row = (png_bytep)malloc(3 * scaledWidth * sizeof(png_byte));
     if (!row) {
-        fprintf(stderr, "Failed to allocate memory for PNG\n");
+        fprintf(stderr, "Failed to allocate memory for PNG: 0x1700\n");
         png_destroy_write_struct(&png, &info);
         fclose(fp);
         return;
@@ -173,15 +187,15 @@ void createImage(const char *file, int *field, int W, int H, int Scale) {
 
     // Write image data
     for (int y = 0; y < H + 2; y++) {
-        for (int i = 0; i < Scale; i++) { // Repeat each row `Scale` times
+        for (int i = 0; i < Scale; i++) { 
             for (int x = 0; x < W + 2; x++) {
                 unsigned char color[3];
                 if (x == 0 || y == 0 || x == W + 1 || y == H + 1) {
-                    color[0] = 0; color[1] = 0; color[2] = 0; // SIDE (black)
+                    color[0] = 0; color[1] = 0; color[2] = 0; // Draw sides (black)
                 } else if (x == 1 && y == 1) {
-                    color[0] = 255; color[1] = 0; color[2] = 0; // START (red)
+                    color[0] = 255; color[1] = 0; color[2] = 0; // draw start pixel (red)
                 } else if (x == W && y == H) {
-                    color[0] = 0; color[1] = 0; color[2] = 255; // END (blue)
+                    color[0] = 0; color[1] = 0; color[2] = 255; // draw end pixel (blue)
                 } else {
                     int val = field[(x - 1) + (y - 1) * W];
                     color[0] = val == 0 ? 0 : 255;
@@ -191,7 +205,7 @@ void createImage(const char *file, int *field, int W, int H, int Scale) {
 
                 // Repeat each pixel Scale times
                 for (int j = 0; j < Scale; j++) {
-                    row[(x * Scale + j) * 3 + 0] = color[0]; // Red
+                    row[(x * Scale + j) * 3 + 0] = color[0]; // add red part
                     row[(x * Scale + j) * 3 + 1] = color[1]; // Green
                     row[(x * Scale + j) * 3 + 2] = color[2]; // Blue
                 }
