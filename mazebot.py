@@ -11,28 +11,18 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 output_file = "maze.png"
 
 async def try_to_send(operation, message=None, file=None):
-    if isinstance(operation, discord.Interaction):
-        if not operation.response.is_done():
-            if file:
-                await operation.response.send_message(file=discord.File(file))
-            else:
-                await operation.response.send_message(message)
-        else:
-            if file:
-                await operation.followup.send(file=discord.File(file))
-            else:
-                await operation.followup.send(message)
+    response_method = (
+        operation.response.send_message if isinstance(operation, discord.Interaction) and not operation.response.is_done()
+        else operation.followup.send if isinstance(operation, discord.Interaction)
+        else operation.reply
+    )
+    if file:
+        await response_method(file=discord.File(file))
     else:
-        if file:
-            await operation.reply(file=discord.File(file))
-        else:
-            await operation.reply(message)
-
-def separate(input_string):
-    return input_string.split()
+        await response_method(content=message)
 
 def log(message):
-    with open("./mazebot.log", "a") as f:
+    with open("./bot.log", "a") as f:
         f.write(f"\n{message}")
 
 async def generate_maze(operation, size_input=None):
@@ -80,23 +70,22 @@ async def generate_maze(operation, size_input=None):
 @bot.tree.command(name="maze", description="Generate a maze")
 async def slash_maze(interaction: discord.Interaction, size: str = None):
     log(f"\n\033[96m{datetime.now().strftime('%-m/%-d/%y %H:%M:%S')}\033[0m")
-    log(f"\n\033[92mslash\033[0m maze request received from \033[94m{interaction.user}\033[0m")
-    await generate_maze(interaction, separate(size))
+    log(f"\033[92mslash\033[0m maze request received from \033[94m{interaction.user}\033[0m")
+    await generate_maze(interaction, size.split())
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
-
     if message.content.startswith('-maze'):
         log(f"\n\033[96m{datetime.now().strftime('%-m/%-d/%y %H:%M:%S')}\033[0m")
         log(f"\n\033[93mdash\033[0m maze request received from \033[94m{message.author}\033[0m")
-        await generate_maze(message, separate(message.content.lower())[1:])
-
-    await bot.process_commands(message)
+        async with message.channel.typing():
+            await generate_maze(message, message.content.lower().split()[1:])
 
 @bot.event
 async def on_ready():
     await bot.tree.sync()
+    log("\033[92mBot restarted!")
 
 bot.run(token)
