@@ -68,7 +68,7 @@ async def generate_maze(operation, size_input=None):
         log(f"\033[31muser number was too big\033[0m")
 
 @bot.tree.command(name="maze", description="Generate a maze")
-async def slash_maze(interaction: discord.Interaction, size: str = None):
+async def maze(interaction: discord.Interaction, size: int):
     log(f"\n\033[96m{datetime.now().strftime('%-m/%-d/%y %H:%M:%S')}\033[0m")
     log(f"\033[92mslash\033[0m maze request received from \033[94m{interaction.user}\033[0m")
     await generate_maze(interaction, size.split())
