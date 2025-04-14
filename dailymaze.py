@@ -4,7 +4,7 @@ import os, time, random
 
 hour = int(input("Hour to send at: "))
 min = int(input("Min to send at: "))
-channel = inpit("Channel ID to send in: "))
+channel = input("Channel ID to send in: ")
 i = int(input("Number to start at: "))
 
 def daily_maze(channel_id):
